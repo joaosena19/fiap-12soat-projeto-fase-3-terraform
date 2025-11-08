@@ -1,0 +1,17 @@
+# Variáveis Obrigatórias
+bucket_name = "coloque-seu-bucket-aqui"
+eks_iam_user_name = "seu-usuario-admin-eks"
+eks_cluster_name = "eks-cluster-fiap-12soat-fase2-joaodainese"
+
+# Variáveis Opcionais
+# aws_region   = "us-east-1"
+# availability_zones = ["us-east-1a", "us-east-1b", "us-east-1c"]
+# environment  = "Dev"
+# project_name       = "FIAP 12SOAT Fase 2 - João Dainese"
+# project_identifier = "fiap-12soat-fase2-joaodainese"
+# cidr_vpc = "10.0.0.0/16"
+# eks_node_instance_types = ["t2.micro"]
+# eks_node_disk_size      = 20
+# eks_node_scaling_desired_size   = 2
+# eks_node_scaling_max_size       = 3
+# eks_node_scaling_min_size       = 1
