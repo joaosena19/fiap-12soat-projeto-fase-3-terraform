@@ -30,13 +30,13 @@ variable "environment" {
 variable "project_name" {
   description = "Nome do projeto para ser usado em tags."
   type        = string
-  default     = "FIAP 12SOAT Fase 2 - João Dainese"
+  default     = "FIAP 12SOAT Fase 3"
 }
 
 variable "project_identifier" {
   description = "Identificador único do projeto para ser usado em tags."
   type        = string
-  default     = "fiap-12soat-fase2-joaodainese"
+  default     = "fiap-12soat-fase3"
 }
 
 variable "cidr_vpc" {
