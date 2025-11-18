@@ -56,13 +56,6 @@ resource "aws_apigatewayv2_integration" "lambda_auth" {
   payload_format_version = "2.0"
 }
 
-# Rota POST /auth/login (sem autenticação JWT)
-resource "aws_apigatewayv2_route" "auth_login" {
-  api_id    = aws_apigatewayv2_api.main.id
-  route_key = "POST /auth/login"
-  target    = "integrations/${aws_apigatewayv2_integration.lambda_auth.id}"
-}
-
 # JWT Authorizer para validar tokens nas rotas protegidas
 resource "aws_apigatewayv2_authorizer" "jwt" {
   api_id           = aws_apigatewayv2_api.main.id
@@ -115,13 +108,4 @@ resource "aws_apigatewayv2_integration" "eks" {
   connection_type    = "VPC_LINK"
   connection_id      = aws_apigatewayv2_vpc_link.eks.id
   payload_format_version = "1.0"
-}
-
-# Rota catch-all para EKS (todas as rotas exceto /auth/login)
-resource "aws_apigatewayv2_route" "eks_proxy" {
-  api_id             = aws_apigatewayv2_api.main.id
-  route_key          = "ANY /{proxy+}"
-  target             = "integrations/${aws_apigatewayv2_integration.eks.id}"
-  authorization_type = "JWT"
-  authorizer_id      = aws_apigatewayv2_authorizer.jwt.id
 }
