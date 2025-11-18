@@ -1,0 +1,75 @@
+name: Validar Pull Request
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  terraform-validation:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verificar mudanças na pasta infra
+        id: changes
+        run: |
+          if git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -q '^infra/'; then
+            echo "infra_changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "infra_changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Configurar credenciais AWS
+        if: steps.changes.outputs.infra_changed == 'true'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Configurar Terraform
+        if: steps.changes.outputs.infra_changed == 'true'
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.0
+
+      - name: Inicializar Terraform
+        if: steps.changes.outputs.infra_changed == 'true'
+        run: terraform init
+        working-directory: ./infra
+
+      - name: Validar configuração do Terraform
+        if: steps.changes.outputs.infra_changed == 'true'
+        run: terraform validate
+        working-directory: ./infra
+
+      - name: Terraform Plan
+        if: steps.changes.outputs.infra_changed == 'true'
+        id: plan
+        run: terraform plan -no-color
+        working-directory: ./infra
+        env:
+          TF_VAR_aws_region: us-east-1
+          TF_VAR_bucket_name: ${{ secrets.TF_VAR_BUCKET_NAME }}
+          TF_VAR_eks_iam_user_name: ${{ secrets.TF_VAR_EKS_IAM_USER_NAME }}
+          TF_VAR_eks_cluster_name: ${{ secrets.TF_VAR_EKS_CLUSTER_NAME }}
+          TF_VAR_eks_node_scaling_desired_size: ${{ secrets.TF_VAR_EKS_NODE_SCALING_DESIRED_SIZE }}
+          TF_VAR_eks_node_scaling_max_size: ${{ secrets.TF_VAR_EKS_NODE_SCALING_MAX_SIZE }}
+          TF_VAR_eks_node_scaling_min_size: ${{ secrets.TF_VAR_EKS_NODE_SCALING_MIN_SIZE }}
+          TF_VAR_jwt_issuer: ${{ secrets.JWT_ISSUER }}
+          TF_VAR_jwt_audience: ${{ secrets.JWT_AUDIENCE }}
+
+      - name: Resumo da validação
+        if: steps.changes.outputs.infra_changed == 'true'
+        run: echo "Validação do Terraform concluída com sucesso."
+        
+      - name: Nenhuma mudança na infraestrutura
+        if: steps.changes.outputs.infra_changed == 'false'
+        run: echo "Sem alterações detectadas na pasta infra/ - pulando validação do Terraform."

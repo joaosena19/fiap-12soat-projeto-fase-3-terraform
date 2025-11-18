@@ -74,7 +74,30 @@ variable "eks_node_scaling_max_size" {
   type        = number
   default     = 3
 }
+# Variáveis para API Gateway e Lambda
+variable "lambda_terraform_state_bucket" {
+  description = "Nome do bucket S3 onde está o tfstate da Lambda"
+  type        = string
+  default     = "fiap-12soat-terraform-state"
+}
 
+variable "lambda_terraform_state_key" {
+  description = "Chave do tfstate da Lambda no bucket S3"
+  type        = string
+  default     = "lambda-auth/terraform.tfstate"
+}
+
+variable "jwt_issuer" {
+  description = "Emissor do token JWT (deve ser igual ao configurado na Lambda)"
+  type        = string
+  default     = "OficinaMecanicaApi"
+}
+
+variable "jwt_audience" {
+  description = "Audiência do token JWT (deve ser igual ao configurado na Lambda)"
+  type        = string
+  default     = "AuthorizedServices"
+}
 variable "eks_node_scaling_min_size" {
   description = "Número mínimo de nós no grupo do EKS."
   type        = number
