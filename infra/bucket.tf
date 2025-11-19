@@ -1,4 +1,4 @@
-resource "aws_s3_bucket" "bucket_fiap_fase2" {
+resource "aws_s3_bucket" "bucket_fiap_fase3" {
   bucket = var.bucket_name
 
   lifecycle {

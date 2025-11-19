@@ -78,7 +78,7 @@ variable "eks_node_scaling_max_size" {
 variable "lambda_terraform_state_bucket" {
   description = "Nome do bucket S3 onde está o tfstate da Lambda"
   type        = string
-  default     = "fiap-12soat-terraform-state"
+  default     = "fiap-12soat-fase3-joao-dainese"
 }
 
 variable "lambda_terraform_state_key" {
