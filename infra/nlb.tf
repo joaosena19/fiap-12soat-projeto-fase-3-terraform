@@ -21,7 +21,7 @@ resource "aws_security_group" "nlb_sg" {
   }
 
   egress {
-    description = "Permitir todo tráfego de saída"
+    description = "Permitir todo trafego de saida"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
@@ -82,20 +82,20 @@ resource "aws_lb_listener" "eks_listener" {
   }
 }
 
-# Attachment dos nós do EKS ao Target Group
 data "aws_instances" "eks_nodes" {
   instance_tags = {
     "eks:cluster-name" = var.eks_cluster_name
   }
-
   instance_state_names = ["running"]
+}
 
-  depends_on = [aws_eks_node_group.eks_node_group]
+locals {
+  eks_nodes = data.aws_instances.eks_nodes.ids
 }
 
 resource "aws_lb_target_group_attachment" "eks_nodes" {
-  count            = length(data.aws_instances.eks_nodes.ids)
+  for_each         = toset(local.eks_nodes != null ? local.eks_nodes : [])
   target_group_arn = aws_lb_target_group.eks_tg.arn
-  target_id        = data.aws_instances.eks_nodes.ids[count.index]
+  target_id        = each.value
   port             = 30080
 }
