@@ -82,26 +82,20 @@ resource "aws_lb_listener" "eks_listener" {
   }
 }
 
-# 1. Busca o Auto Scaling Group criado pelo EKS Node Group
-data "aws_autoscaling_groups" "eks_asg" {
-  filter {
-    name   = "key"
-    values = ["eks:cluster-name"]
+data "aws_instances" "eks_nodes" {
+  instance_tags = {
+    "eks:cluster-name" = var.eks_cluster_name
   }
-
-  filter {
-    name   = "value"
-    values = [var.eks_cluster_name]
-  }
-
-  depends_on = [aws_eks_node_group.eks_node_group]
+  instance_state_names = ["running"]
 }
 
-# 2. Anexa o ASG inteiro ao Target Group do NLB
-resource "aws_autoscaling_attachment" "eks_asg_attachment" {
-  # Como pode haver mais de um ASG (se houver múltiplos node groups), usamos count
-  count = length(data.aws_autoscaling_groups.eks_asg.names)
+locals {
+  eks_nodes = data.aws_instances.eks_nodes.ids
+}
 
-  autoscaling_group_name = data.aws_autoscaling_groups.eks_asg.names[count.index]
-  lb_target_group_arn    = aws_lb_target_group.eks_tg.arn
+resource "aws_lb_target_group_attachment" "eks_nodes" {
+  for_each         = toset(local.eks_nodes != null ? local.eks_nodes : [])
+  target_group_arn = aws_lb_target_group.eks_tg.arn
+  target_id        = each.value
+  port             = 30080
 }
