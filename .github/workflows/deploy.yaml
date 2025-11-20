@@ -62,7 +62,3 @@ jobs:
           TF_VAR_jwt_issuer: ${{ secrets.JWT_ISSUER }}
           TF_VAR_jwt_audience: ${{ secrets.JWT_AUDIENCE }}
         run: terraform apply -auto-approve tfplan
-
-      - name: Exibir API Gateway Endpoint
-        working-directory: ./infra
-        run: terraform output api_gateway_endpoint
