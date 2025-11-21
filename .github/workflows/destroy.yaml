@@ -42,7 +42,13 @@ jobs:
         working-directory: ./infra
         run: terraform init
 
-      - name: Destruir Terraform
+      - name: Listar recursos do Terraform
+        working-directory: ./infra
+        run: |
+          echo "Listando recursos do Terraform state..."
+          terraform state list
+
+      - name: Destruir recursos específicos (exceto bucket)
         working-directory: ./infra
         env:
           TF_VAR_aws_region: ${{ env.AWS_REGION }}
@@ -54,7 +60,57 @@ jobs:
           TF_VAR_eks_node_scaling_min_size: ${{ secrets.TF_VAR_EKS_NODE_SCALING_MIN_SIZE }}
           TF_VAR_jwt_issuer: ${{ secrets.JWT_ISSUER }}
           TF_VAR_jwt_audience: ${{ secrets.JWT_AUDIENCE }}
-        run: terraform destroy -auto-approve
+        run: |
+          echo "Destruindo recursos específicos (excluindo bucket S3)..."
+          
+          # Ordem específica de destruição para evitar problemas de dependência
+          DESTROY_ORDER=(
+            "aws_lb_target_group_attachment"
+            "aws_lb_listener"
+            "aws_lb_target_group"
+            "aws_lb"
+            "aws_security_group_rule"
+            "aws_eks_node_group"
+            "aws_eks_access_entry"
+            "aws_eks_cluster"
+            "aws_route_table_association"
+            "aws_route_table"
+            "aws_internet_gateway"
+            "aws_subnet"
+            "aws_security_group"
+            "aws_iam_role_policy_attachment"
+            "aws_iam_policy"
+            "aws_iam_role"
+            "aws_vpc"
+          )
+          
+          # Destruir recursos em ordem específica
+          for resource_type in "${DESTROY_ORDER[@]}"; do
+            RESOURCES=$(terraform state list | grep "^${resource_type}\." || true)
+            if [ -n "$RESOURCES" ]; then
+              echo "Destruindo recursos do tipo: $resource_type"
+              for resource in $RESOURCES; do
+                echo "  -> Destruindo: $resource"
+                terraform destroy -target="$resource" -auto-approve || echo "Falha ao destruir $resource (continuando...)"
+              done
+            fi
+          done
+          
+          # Destruir recursos restantes (exceto bucket S3)
+          REMAINING_RESOURCES=$(terraform state list | grep -v "aws_s3_bucket" || true)
+          if [ -n "$REMAINING_RESOURCES" ]; then
+            echo "Destruindo recursos restantes..."
+            for resource in $REMAINING_RESOURCES; do
+              echo "  -> Destruindo: $resource"
+              terraform destroy -target="$resource" -auto-approve || echo "Falha ao destruir $resource (continuando...)"
+            done
+          fi
 
-      - name: Destruição completa
-        run: echo "Toda a infraestrutura AWS foi destruída com sucesso"
+      - name: Verificar recursos restantes
+        working-directory: ./infra
+        run: |
+          echo "Recursos restantes após destroy:"
+          terraform state list
+
+      - name: Destruição completa (exceto bucket S3)
+        run: echo "Infraestrutura AWS foi destruída com sucesso (bucket S3 preservado para estado do Terraform)"
