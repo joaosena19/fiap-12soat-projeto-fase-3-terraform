@@ -7,7 +7,6 @@ resource "aws_eks_node_group" "eks_node_group" {
   instance_types = var.eks_node_instance_types
   disk_size      = var.eks_node_disk_size
 
-
   scaling_config {
     desired_size = var.eks_node_scaling_desired_size
     max_size     = var.eks_node_scaling_max_size
@@ -27,6 +26,6 @@ resource "aws_eks_node_group" "eks_node_group" {
     aws_eks_cluster.eks_cluster,
     aws_iam_role_policy_attachment.eks_node_AmazonEKSWorkerNodePolicy,
     aws_iam_role_policy_attachment.eks_node_AmazonEKS_CNI_Policy,
-    aws_iam_role_policy_attachment.eks_node_AmazonEC2ContainerRegistryReadOnly # Usarei realmente já que estou com Docker Registry?
+    aws_iam_role_policy_attachment.eks_node_AmazonEC2ContainerRegistryReadOnly
   ]
 }
