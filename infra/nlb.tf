@@ -108,10 +108,10 @@ resource "aws_security_group_rule" "allow_nlb_to_eks_nodes" {
   to_port     = 30080
   protocol    = "tcp"
 
-  # A origem é o Security Group do seu NLB
+  # A origem é o Security Group do NLB
   source_security_group_id = aws_security_group.nlb_sg.id
 
-  # O destino é o Security Group AUTOMÁTICO do Cluster EKS (onde os nós estão)
+  # O destino é o Security Group automático do Cluster EKS (onde os nós estão)
   security_group_id = aws_eks_cluster.eks_cluster.vpc_config[0].cluster_security_group_id
 
   depends_on = [aws_eks_cluster.eks_cluster]
