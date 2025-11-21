@@ -99,3 +99,20 @@ resource "aws_lb_target_group_attachment" "eks_nodes" {
   target_id        = each.value
   port             = 30080
 }
+
+# Regra para permitir que o NLB acesse os nós do EKS na porta do NodePort
+resource "aws_security_group_rule" "allow_nlb_to_eks_nodes" {
+  type        = "ingress"
+  description = "Permitir trafego do NLB para os nos do EKS na porta 30080"
+  from_port   = 30080
+  to_port     = 30080
+  protocol    = "tcp"
+
+  # A origem é o Security Group do seu NLB
+  source_security_group_id = aws_security_group.nlb_sg.id
+
+  # O destino é o Security Group AUTOMÁTICO do Cluster EKS (onde os nós estão)
+  security_group_id = aws_eks_cluster.eks_cluster.vpc_config[0].cluster_security_group_id
+
+  depends_on = [aws_eks_cluster.eks_cluster]
+}
