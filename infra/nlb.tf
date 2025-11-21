@@ -1,3 +1,8 @@
+# Data source para pegar CIDR da VPC
+data "aws_vpc" "main" {
+  id = aws_vpc.vpc_principal.id
+}
+
 # Security Group para o NLB
 resource "aws_security_group" "nlb_sg" {
   name        = "${var.project_identifier}-nlb-sg"
@@ -98,4 +103,34 @@ resource "aws_lb_target_group_attachment" "eks_nodes" {
   target_group_arn = aws_lb_target_group.eks_tg.arn
   target_id        = each.value
   port             = 30080
+}
+
+# Regra para permitir que o NLB acesse os nós do EKS na porta do NodePort
+resource "aws_security_group_rule" "allow_nlb_to_eks_nodes" {
+  type        = "ingress"
+  description = "Permitir trafego do NLB para os nos do EKS na porta 30080"
+  from_port   = 30080
+  to_port     = 30080
+  protocol    = "tcp"
+
+  # A origem é o Security Group do NLB
+  source_security_group_id = aws_security_group.nlb_sg.id
+
+  # O destino é o Security Group automático do Cluster EKS (onde os nós estão)
+  security_group_id = aws_eks_cluster.eks_cluster.vpc_config[0].cluster_security_group_id
+
+  depends_on = [aws_eks_cluster.eks_cluster]
+}
+
+# Regra adicional para permitir que toda a VPC acesse NodePort nos nós EKS
+resource "aws_security_group_rule" "allow_vpc_to_cluster_nodeport" {
+  type              = "ingress"
+  from_port         = 30080
+  to_port           = 30080
+  protocol          = "tcp"
+  cidr_blocks       = [data.aws_vpc.main.cidr_block]
+  security_group_id = aws_eks_cluster.eks_cluster.vpc_config[0].cluster_security_group_id
+  description       = "Allow VPC traffic to reach nodePort 30080 on EKS cluster nodes"
+  
+  depends_on = [aws_eks_cluster.eks_cluster]
 }
