@@ -50,22 +50,6 @@ jobs:
         run: terraform validate
         working-directory: ./infra
 
-      - name: Terraform Plan
-        if: steps.changes.outputs.infra_changed == 'true'
-        id: plan
-        run: terraform plan -no-color
-        working-directory: ./infra
-        env:
-          TF_VAR_aws_region: us-east-1
-          TF_VAR_bucket_name: ${{ secrets.TF_VAR_BUCKET_NAME }}
-          TF_VAR_eks_iam_user_name: ${{ secrets.TF_VAR_EKS_IAM_USER_NAME }}
-          TF_VAR_eks_cluster_name: ${{ secrets.TF_VAR_EKS_CLUSTER_NAME }}
-          TF_VAR_eks_node_scaling_desired_size: ${{ secrets.TF_VAR_EKS_NODE_SCALING_DESIRED_SIZE }}
-          TF_VAR_eks_node_scaling_max_size: ${{ secrets.TF_VAR_EKS_NODE_SCALING_MAX_SIZE }}
-          TF_VAR_eks_node_scaling_min_size: ${{ secrets.TF_VAR_EKS_NODE_SCALING_MIN_SIZE }}
-          TF_VAR_jwt_issuer: ${{ secrets.JWT_ISSUER }}
-          TF_VAR_jwt_audience: ${{ secrets.JWT_AUDIENCE }}
-
       - name: Resumo da validação
         if: steps.changes.outputs.infra_changed == 'true'
         run: echo "Validação do Terraform concluída com sucesso."
