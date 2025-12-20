@@ -103,3 +103,9 @@ variable "eks_node_scaling_min_size" {
   type        = number
   default     = 1
 }
+
+variable "new_relic_license_key" {
+  description = "Chave de licença do New Relic para monitoramento do cluster"
+  type        = string
+  sensitive   = true
+}

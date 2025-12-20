@@ -47,6 +47,7 @@ jobs:
           TF_VAR_eks_node_scaling_min_size: ${{ secrets.TF_VAR_EKS_NODE_SCALING_MIN_SIZE }}
           TF_VAR_jwt_issuer: ${{ secrets.JWT_ISSUER }}
           TF_VAR_jwt_audience: ${{ secrets.JWT_AUDIENCE }}
+          TF_VAR_new_relic_license_key: ${{ secrets.NEW_RELIC_LICENSE_KEY }}
         run: terraform plan -out=tfplan
 
       - name: Aplicar Terraform
@@ -61,4 +62,5 @@ jobs:
           TF_VAR_eks_node_scaling_min_size: ${{ secrets.TF_VAR_EKS_NODE_SCALING_MIN_SIZE }}
           TF_VAR_jwt_issuer: ${{ secrets.JWT_ISSUER }}
           TF_VAR_jwt_audience: ${{ secrets.JWT_AUDIENCE }}
+          TF_VAR_new_relic_license_key: ${{ secrets.NEW_RELIC_LICENSE_KEY }}
         run: terraform apply -auto-approve tfplan
