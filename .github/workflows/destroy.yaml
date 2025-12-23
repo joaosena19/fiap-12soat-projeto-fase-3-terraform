@@ -65,7 +65,7 @@ jobs:
           
           # Ordem específica de destruição para evitar problemas de dependência
           DESTROY_ORDER=(
-            "aws_lb_target_group_attachment"
+            "aws_autoscaling_attachment"
             "aws_lb_listener"
             "aws_lb_target_group"
             "aws_lb"

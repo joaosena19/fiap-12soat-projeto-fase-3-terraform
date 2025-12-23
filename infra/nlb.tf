@@ -87,22 +87,14 @@ resource "aws_lb_listener" "eks_listener" {
   }
 }
 
-data "aws_instances" "eks_nodes" {
-  instance_tags = {
-    "eks:cluster-name" = var.eks_cluster_name
-  }
-  instance_state_names = ["running"]
-}
-
-locals {
-  eks_nodes = data.aws_instances.eks_nodes.ids
-}
-
-resource "aws_lb_target_group_attachment" "eks_nodes" {
-  for_each         = toset(local.eks_nodes != null ? local.eks_nodes : [])
-  target_group_arn = aws_lb_target_group.eks_tg.arn
-  target_id        = each.value
-  port             = 30080
+# Anexa o Auto Scaling Group do EKS ao Target Group do NLB
+resource "aws_autoscaling_attachment" "eks_asg_attachment" {
+  # Pega o nome do ASG gerado dinamicamente pelo EKS Node Group
+  autoscaling_group_name = aws_eks_node_group.eks_node_group.resources[0].autoscaling_groups[0].name
+  lb_target_group_arn    = aws_lb_target_group.eks_tg.arn
+  
+  # Garante que o Node Group já existe antes de tentar anexar
+  depends_on = [aws_eks_node_group.eks_node_group]
 }
 
 # Regra para permitir que o NLB acesse os nós do EKS na porta do NodePort
